@@ -8,3 +8,4 @@ __pycache__/
 # Ignore outputs and other unnecessary folders
 outputs/
 faiss_index/
+.env
