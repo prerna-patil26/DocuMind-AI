@@ -1,0 +1,8 @@
+{
+    "python.analysis.extraPaths": [
+        "./app/utils/ocr_",
+        "./app/utils/ocr_",
+        "./app/utils/llm_",
+        "./app/utils/rag_"
+    ]
+}

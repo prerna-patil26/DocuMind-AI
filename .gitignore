@@ -1,0 +1,10 @@
+# Ignore environment variables
+.env
+
+# Ignore Python cache
+__pycache__/
+*.pyc
+
+# Ignore outputs and other unnecessary folders
+outputs/
+faiss_index/
