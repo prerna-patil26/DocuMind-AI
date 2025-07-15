@@ -33,6 +33,17 @@
 
 ---
 
+##📂 Project Structure
+```bash
+DocuMind-AI/
+├── app.py                # Main application
+├── requirements.txt      # Dependencies
+├── .env                  # Environment variables
+├── faiss_index/          # Vector store directory
+└── outputs/              # Processed outputs
+
+```
+
 ## 🏁 Getting Started
 
 ### Prerequisites
