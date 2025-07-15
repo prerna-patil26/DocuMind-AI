@@ -66,11 +66,15 @@ pip install -r requirements.txt
 
 ```
 
-3.Set up environment
+3. Set up environment
 ```bash
 echo "GEMINI_API_KEY=your_api_key" > .env
 ```
 
+4. Run the app:
+```bash
+streamlit run app.py
+```
 
 ## 👩‍💻 Author
 
