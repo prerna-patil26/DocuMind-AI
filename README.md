@@ -4,7 +4,7 @@
 
 **DocuMind AI** is a powerful document processing and analysis tool that leverages **Google's Gemini AI** and **LangChain** to provide intelligent insights from your documents. It supports PDFs and images, offering features like **text extraction, PII detection, redaction, and natural language Q&A** about document content.
 
-🔗 **Live Demo**: [](https://docuwiz-ai-prerna.streamlit.app)
+🔗 **Live Demo**: [Documind-AI](https://docuwiz-ai-prerna.streamlit.app)
 
 ---
 
@@ -65,9 +65,9 @@ echo "GEMINI_API_KEY=your_api_key" > .env
 
 - **Prerna Patil**
   - 🎓 MCA Student
-  - 🧠 AI & NLP Enthusiast
+  - 🧠 AI & ML Enthusiast
   - 📧 Email: `prernapatil2608@gmail.com`
-  - 🔗 LinkedIn: [](https://www.linkedin.com/in/prerna-patil26) <!-- Replace # with your LinkedIn URL -->
+  - 🔗 LinkedIn: [Prerna Patil](https://www.linkedin.com/in/prerna-patil26) <!-- Replace # with your LinkedIn URL -->
 
 ---
 
