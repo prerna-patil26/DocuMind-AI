@@ -314,7 +314,7 @@ def main():
 
     
     # Header with light yellow color
-    st.markdown('<div class="header">✨DocuMind AI — Chat with PDFs & Images </div>', unsafe_allow_html=True)
+    st.markdown('<div class="header">✨DocuMind Ai — Chat with PDFs & Images </div>', unsafe_allow_html=True)
 
      # 1. Simple Centered Welcome Message
     if not st.session_state.get('processed_text') and not st.session_state.get('show_guide'):
