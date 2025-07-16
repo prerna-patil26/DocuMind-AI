@@ -45,59 +45,300 @@ if 'original_files' not in st.session_state:
 # Custom CSS for styling
 st.markdown("""
 <style>
-    .header {
-        font-size: 2.5rem;
+
+/* 1. Light blue shadow on all boxes */
+.card, .chat-container, .guide-container, .download-container, .upload-area {
+    box-shadow: 0 4px 12px rgba(0, 123, 255, 0.1);
+    border-radius: 12px;
+}
+
+/* 🔧 Compact Sidebar Buttons and Spacing */
+section[data-testid="stSidebar"] {
+    padding: 1rem 0.75rem !important;
+}
+
+/* Reduce top space and spacing between all sidebar elements */
+section[data-testid="stSidebar"] > div {
+    padding-top: 0 !important;
+    gap: 0.3rem !important;
+    margin-bottom: 0.2rem !important;
+}
+
+/* 🔹 Smaller buttons + reduced spacing */
+section[data-testid="stSidebar"] .stButton > button {
+    font-size: 0.75rem !important;
+    padding: 4px 10px !important;
+    border-radius: 16px !important;
+    margin: 4px auto !important;
+    width: 100% !important;
+}
+
+/* Smaller selectbox and download dropdown */
+section[data-testid="stSidebar"] .stSelectbox,
+section[data-testid="stSidebar"] .stDownloadButton,
+section[data-testid="stSidebar"] .stTextInput {
+    font-size: 0.75rem !important;
+    padding: 4px 10px !important;
+}
+
+/*Subheader and headings smaller */
+.sidebar-header {
+    font-size: 1.1rem !important;
+    margin-bottom: 0.2rem !important;
+}
+.sidebar-subheader {
+    font-size: 0.75rem !important;
+    margin-bottom: 0.6rem !important;
+}
+
+/* 🧼 Remove excess space above file uploader */
+div[data-testid="stFileUploader"] {
+    margin-top: 0.25rem !important;
+}
+
+
+button, .stButton>button, .back-btn {
+    background: linear-gradient(90deg, #7f5af0, #3c8ce7);
+    color: white !important;
+    border: none;
+    border-radius: 10px;
+    padding: 0.5rem 1rem;
+    transition: all 0.3s ease;
+}
+
+button, .stButton > button {
+  border-radius: 25px !important;
+  padding: 6px 16px !important;
+  font-size: 0.85rem !important;
+  background: linear-gradient(to right, #7b1fa2, #2196f3);
+  color: white;
+  border: none;
+  margin: 8px auto;
+  display: block;
+  width: fit-content;
+}
+
+section[data-testid="stSidebar"] .stButton > button {
+  margin-left: auto;
+  margin-right: auto;
+}
+            
+
+button[kind="secondary"] {
+  max-width: 200px;
+  margin: auto;
+  font-size: 0.85rem;
+  padding: 6px 14px;
+  border-radius: 20px !important;
+}
+
+section[data-testid="stSidebar"] .stButton {
+  margin-bottom: 0.4rem !important;
+}
+
+
+section[data-testid="stSidebar"] {
+    min-width: 320px !important;
+    max-width: 360px !important;
+}
+
+
+button:hover, .stButton>button:hover {
+    opacity: 0.9;
+}
+
+/* Sidebar header styling */
+    .sidebar-header {
+        background: linear-gradient(to right, #3b82f6, #8b5cf6);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        font-size: 1.5rem;
         font-weight: 700;
-        color: #FFEB3B; /* Light yellow */
+        margin-bottom: 0.5rem;
+        text-shadow: 0 0 8px rgba(59, 130, 246, 0.4);
+ }
+
+.sidebar-subheader {
+        color: linear-gradient(to right, #3b82f6, #8b5cf6);
+        font-size: 0.85rem;
         margin-bottom: 1rem;
-        text-align: center;
-    }
-    .chat-container {
-        border-radius: 12px;
-        padding: 1rem;
-        margin-bottom: 1rem;
-        background-color: rgba(255, 255, 255, 0.9);
-        border: 1px solid #FFD166; /* Light yellow-orange */
-    }
-    .user-message {
-        color: #000000;
-    }
-    .bot-message {
-        color: #000000;
-    }
-    .download-container {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-    }
-    .guide-container {
-        padding: 2rem;
-        background-color: rgba(255, 255, 255, 0.9);
-        border-radius: 12px;
-        position: relative;
-    }
-    .back-btn {
-        background-color: #4f46e5;
-        color: white;
-        border: none;
-        padding: 8px 16px;
-        border-radius: 4px;
-        cursor: pointer;
-        margin-top: 1rem;
-    }
-    .reset-note {
-        font-size: 0.8rem;
-        color: #666;
-        margin-top: 0.5rem;
-    }
+        font-weight: 500;
+}
+    
+    /* Dark mode adjustment */
     @media (prefers-color-scheme: dark) {
-        .chat-container, .guide-container {
-            background-color: rgba(30, 30, 30, 0.9);
-        }
-        .user-message, .bot-message {
-            color: #FFFFFF;
+        .sidebar-subheader {
+            color: #94a3b8;
         }
     }
+
+
+.upload-container .stButton>button {
+    background: linear-gradient(90deg, #7f5af0, #3c8ce7);
+    color: white;
+    border-radius: 10px;
+    padding: 0.4rem 1rem;
+    font-weight: 600;
+}
+
+section[data-testid="stSidebar"] > div:first-child {
+    min-width: 300px;
+    max-width: 340px;
+}
+
+
+section[data-testid="stSidebar"]::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 3px;
+    height: 100%;
+    background: linear-gradient(to bottom, #7b1fa2, #2196f3); /* Gradient purple to blue */
+    box-shadow: 0 0 8px rgba(123, 31, 162, 0.7), 0 0 12px rgba(33, 150, 243, 0.7);
+    z-index: 5;
+}
+section[data-testid="stSidebar"] {
+    position: relative;
+}
+            
+section[data-testid="stSidebar"] > div {
+  gap: 0.5rem !important;
+  margin-bottom: 0.25rem !important;
+}
+ 
+section[data-testid="stSidebar"] {
+    background-color: #000000 !important;  /* Pure black */
+    color: white;
+    padding: 1.5rem 1rem;
+    position: relative;
+    box-shadow: inset -3px 0 6px rgba(255, 255, 255, 0.05);
+}
+
+
+section[data-testid="stSidebar"] * {
+    color: white !important;
+}
+
+
+.download-label::before {
+    content: "\25BC "; /* Down arrow icon */
+    margin-right: 6px;
+}
+.download-label {
+    font-weight: bold;
+    margin-bottom: 6px;
+    color: #444;
+}
+
+ /* Reduce gap between User Guide and Reset buttons */
+    div.stButton:has(button[kind="secondary"]) {
+        margin-top: 0.05rem !important;
+    }
+.header {
+    font-size: 2.5rem;
+    font-weight: 700;
+    background: linear-gradient(to right, #7f5af0, #3c8ce7);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.2);
+    margin-bottom: 1rem;
+    text-align: center;
+}
+
+
+.upload-section {
+  background: linear-gradient(to right, #7b1fa2, #2196f3);
+  color: white;
+  padding: 12px;
+  border-radius: 20px;
+  margin-top: 1rem;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+.upload-section span {
+  font-weight: 600;
+  font-size: 1rem;
+}
+.upload-section .browse-button button {
+  border-radius: 25px !important;
+  padding: 6px 16px !important;
+  font-size: 0.85rem !important;
+  background: linear-gradient(to right, #7b1fa2, #2196f3);
+  color: white;
+  border: none;
+}
+  
+
+div[data-testid="stFileUploader"] > div:first-child {
+    background: linear-gradient(to right, #7b1fa2, #2196f3) !important;
+    border-radius: 20px !important;
+    padding: 1rem 1.2rem !important;
+    color: white !important;
+    font-weight: 600;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+    margin-top: 0.5rem;
+    text-align: center;
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+}
+
+div[data-testid="stFileUploader"] label::before {
+    content: "📂";
+    margin-right: 8px;
+    font-size: 1.2rem;
+}
+
+
+div[data-testid="stFileUploader"] button {
+    background: linear-gradient(to right, #7b1fa2, #2196f3) !important;
+    color: white !important;
+    border-radius: 25px !important;
+    padding: 6px 16px !important;
+    font-size: 0.85rem !important;
+    border: none !important;
+    margin-top: 1rem;
+    transition: 0.3s ease;
+}
+div[data-testid="stFileUploader"] button:hover {
+    opacity: 0.9;
+}
+
+  .chat-container {
+    border-radius: 12px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    border: 2px solid transparent;
+    background-clip: padding-box;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+.user-message {
+    border: 2px solid #64b5f6; /* Light blue */
+    background-color: rgba(100, 181, 246, 0.1);
+    padding: 1rem;
+    border-radius: 10px;
+}
+.bot-message {
+    border: 2px solid #9575cd; /* Light purple */
+    background-color: rgba(149, 117, 205, 0.1);
+    padding: 1rem;
+    border-radius: 10px;
+}
+
+.upload-container .stButton:last-child {
+    margin-left: auto;
+}
+
+@media (prefers-color-scheme: dark) {
+    .chat-container, .guide-container, .upload-area {
+        background-color: rgba(30, 30, 30, 0.95);
+    }
+}
+            
 </style>
 """, unsafe_allow_html=True)
 
@@ -311,19 +552,17 @@ def show_guide():
 
 def main():
     st.set_page_config("✨ DocuMind AI", page_icon="📄", layout="wide")
-
-    
-    # Header with light yellow color
     st.markdown('<div class="header">✨DocuMind Ai — Chat with PDFs & Images </div>', unsafe_allow_html=True)
 
-     # 1. Simple Centered Welcome Message
     if not st.session_state.get('processed_text') and not st.session_state.get('show_guide'):
         st.markdown("<h1 style='text-align: center; margin-top: 2rem;'>Welcome to DocuMind AI</h1>", unsafe_allow_html=True)
         st.markdown("<p style='text-align: center;'>Upload and process your documents to begin</p>", unsafe_allow_html=True)
+
     
     # Sidebar
     with st.sidebar:
-        st.subheader("📂 Document Processing")
+        st.markdown('<div class="sidebar-header">Documind AI</div>', unsafe_allow_html=True)
+        st.markdown('<div class="sidebar-subheader">Upload images and PDFs</div>', unsafe_allow_html=True)
         uploaded_files = st.file_uploader(
             "Upload PDFs/Images",
             type=['pdf', 'png', 'jpg', 'jpeg'],
