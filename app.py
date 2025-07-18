@@ -703,7 +703,7 @@ def main():
             
         uploaded_files = st.file_uploader(
             "Upload Documents",
-            type=['pdf', 'docx', 'txt', 'png', 'jpg', 'jpeg'],
+            type=['pdf', 'docx', 'txt'],
             accept_multiple_files=True,
             label_visibility="collapsed"
         )
