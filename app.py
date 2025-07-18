@@ -363,19 +363,40 @@ def extract_text_from_image(image_file):
     except Exception as e:
         return f"Image processing error: {str(e)}"
 
-def get_pdf_text(pdf_docs):
+def extract_text_from_docx(docx_file):
+    try:
+        doc = docx.Document(io.BytesIO(docx_file.getvalue()))
+        return "\n".join([para.text for para in doc.paragraphs])
+    except Exception as e:
+        return f"DOCX processing error: {str(e)}"
+
+def extract_text_from_txt(txt_file):
+    try:
+        return txt_file.getvalue().decode("utf-8")
+    except Exception as e:
+        return f"Text file processing error: {str(e)}"
+
+def get_pdf_text(uploaded_files):
     text = ""
-    for pdf in pdf_docs:
-        if pdf.name.lower().endswith(('.png', '.jpg', '.jpeg')):
-            st.info(f"Processing image: {pdf.name}")
-            file_text = extract_text_from_image(pdf)
+    for file in uploaded_files:
+        if file.name.lower().endswith(('.png', '.jpg', '.jpeg')):
+            st.info(f"Processing image: {file.name}")
+            file_text = extract_text_from_image(file)
             text += f"Image Content:\n{file_text}\n\n"
-        elif pdf.name.lower().endswith('.pdf'):
-            st.info(f"Processing PDF: {pdf.name}")
-            file_text = extract_text_from_pdf(pdf)
+        elif file.name.lower().endswith('.pdf'):
+            st.info(f"Processing PDF: {file.name}")
+            file_text = extract_text_from_pdf(file)
             text += f"PDF Content:\n{file_text}\n\n"
+        elif file.name.lower().endswith('.docx'):
+            st.info(f"Processing DOCX: {file.name}")
+            file_text = extract_text_from_docx(file)
+            text += f"DOCX Content:\n{file_text}\n\n"
+        elif file.name.lower().endswith('.txt'):
+            st.info(f"Processing TXT: {file.name}")
+            file_text = extract_text_from_txt(file)
+            text += f"TXT Content:\n{file_text}\n\n"
         else:
-            st.warning(f"Unsupported file type: {pdf.name}")
+            st.warning(f"Unsupported file type: {file.name}")
     return text
 
 def get_text_chunks(text):
@@ -510,7 +531,7 @@ def show_guide():
     ### ✨ Core Features
     
     **Document Analysis**
-    - Extract key information from PDFs and images
+    - Extract key information from PDFs, DOCX, TXT, and images
     - Get precise answers to your document questions
     - Automatically detect page references when requested
     
@@ -529,7 +550,7 @@ def show_guide():
     ### 🚀 How To Use
     
     1. **Upload Documents**
-       - PDF, JPG, PNG files supported
+       - PDF, DOCX, TXT, JPG, PNG files supported
        - Multiple files can be processed together
     
     2. **Ask Questions**
@@ -554,20 +575,19 @@ def show_guide():
 
 def main():
     st.set_page_config("✨ DocuMind AI", page_icon="📄", layout="wide")
-    st.markdown('<div class="header">✨DocuMind Ai — Chat with PDFs & Images </div>', unsafe_allow_html=True)
+    st.markdown('<div class="header">✨DocuMind Ai — Chat with Documents</div>', unsafe_allow_html=True)
 
     if not st.session_state.get('processed_text') and not st.session_state.get('show_guide'):
         st.markdown("<h1 style='text-align: center; margin-top: 2rem;'>Welcome to DocuMind AI</h1>", unsafe_allow_html=True)
         st.markdown("<p style='text-align: center;'>Upload and process your documents to begin</p>", unsafe_allow_html=True)
 
-    
     # Sidebar
     with st.sidebar:
         st.markdown('<div class="sidebar-header">Documind AI</div>', unsafe_allow_html=True)
-        st.markdown('<div class="sidebar-subheader">Upload images and PDFs</div>', unsafe_allow_html=True)
+        st.markdown('<div class="sidebar-subheader">Upload documents and images</div>', unsafe_allow_html=True)
         uploaded_files = st.file_uploader(
-            "Upload PDFs/Images",
-            type=['pdf', 'png', 'jpg', 'jpeg'],
+            "Upload Documents",
+            type=['pdf', 'docx', 'txt', 'png', 'jpg', 'jpeg'],
             accept_multiple_files=True,
             label_visibility="collapsed"
         )
@@ -590,8 +610,6 @@ def main():
                         st.error("No text extracted - check file formats")
                 else:
                     st.warning("Please upload files first")
-
-   
         
         st.divider()
         
@@ -637,8 +655,6 @@ def main():
                    type="secondary",
                    help="Clear all chat history and document data"):
             reset_all_data()
-        
-        
     
     # Main content
     if st.session_state.show_guide:
