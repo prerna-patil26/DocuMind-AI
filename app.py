@@ -23,7 +23,9 @@ import glob
 from streamlit.components.v1 import html
 
 # Configure Tesseract path
-pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
+current_dir = os.path.dirname(os.path.abspath(__file__))
+pytesseract.pytesseract.tesseract_cmd = os.path.join(current_dir, "tesseract", "tesseract.exe")
+
 
 # Load environment variables
 load_dotenv()
