@@ -1,3 +1,4 @@
+from datetime import datetime
 import streamlit as st
 from PyPDF2 import PdfReader
 import os
@@ -26,7 +27,6 @@ from streamlit.components.v1 import html
 current_dir = os.path.dirname(os.path.abspath(__file__))
 pytesseract.pytesseract.tesseract_cmd = os.path.join(current_dir, "tesseract", "tesseract.exe")
 
-
 # Load environment variables
 load_dotenv()
 
@@ -43,304 +43,402 @@ if 'download_format' not in st.session_state:
     st.session_state.download_format = "TXT"
 if 'original_files' not in st.session_state:
     st.session_state.original_files = None
+if 'show_project_info' not in st.session_state:
+    st.session_state.show_project_info = False
 
 # Custom CSS for styling
 st.markdown("""
 <style>
-
-/* 1. Light blue shadow on all boxes */
-.card, .chat-container, .guide-container, .download-container, .upload-area {
-    box-shadow: 0 4px 12px rgba(0, 123, 255, 0.1);
-    border-radius: 12px;
-}
-
-/* 🔧 Compact Sidebar Buttons and Spacing */
-section[data-testid="stSidebar"] {
-    padding: 1rem 0.75rem !important;
-}
-
-/* Reduce top space and spacing between all sidebar elements */
-section[data-testid="stSidebar"] > div {
-    padding-top: 0 !important;
-    gap: 0.3rem !important;
-    margin-bottom: 0.2rem !important;
-}
-
-/* 🔹 Smaller buttons + reduced spacing */
-section[data-testid="stSidebar"] .stButton > button {
-    font-size: 0.75rem !important;
-    padding: 4px 10px !important;
-    border-radius: 16px !important;
-    margin: 4px auto !important;
-    width: 100% !important;
-}
-
-/* Smaller selectbox and download dropdown */
-section[data-testid="stSidebar"] .stSelectbox,
-section[data-testid="stSidebar"] .stDownloadButton,
-section[data-testid="stSidebar"] .stTextInput {
-    font-size: 0.75rem !important;
-    padding: 4px 10px !important;
-}
-
-/*Subheader and headings smaller */
-.sidebar-header {
-    font-size: 1.1rem !important;
-    margin-bottom: 0.2rem !important;
-}
-.sidebar-subheader {
-    font-size: 0.75rem !important;
-    margin-bottom: 0.6rem !important;
-}
-
-/* 🧼 Remove excess space above file uploader */
-div[data-testid="stFileUploader"] {
-    margin-top: 0.25rem !important;
-}
-
-
-button, .stButton>button, .back-btn {
-    background: linear-gradient(90deg, #7f5af0, #3c8ce7);
+/* 1. Remove button blinking and add glow effect */
+button, .stButton>button {
+    background: linear-gradient(to right, #7b1fa2, #2196f3) !important;
     color: white !important;
-    border: none;
-    border-radius: 10px;
-    padding: 0.5rem 1rem;
-    transition: all 0.3s ease;
+    border: none !important;
+    border-radius: 25px !important;
+    padding: 6px 16px !important;
+    font-size: 0.85rem !important;
+    transition: all 0.3s ease !important;
+    box-shadow: 0 0 5px rgba(123, 31, 162, 0.3);
+    animation: button-glow 2s infinite alternate;
 }
 
-button, .stButton > button {
-  border-radius: 25px !important;
-  padding: 6px 16px !important;
-  font-size: 0.85rem !important;
-  background: linear-gradient(to right, #7b1fa2, #2196f3);
-  color: white;
-  border: none;
-  margin: 8px auto;
-  display: block;
-  width: fit-content;
+@keyframes button-glow {
+    0% { box-shadow: 0 0 5px rgba(123, 31, 162, 0.3); }
+    100% { box-shadow: 0 0 15px rgba(33, 150, 243, 0.5); }
 }
-
-section[data-testid="stSidebar"] .stButton > button {
-  margin-left: auto;
-  margin-right: auto;
-}
-            
-
-button[kind="secondary"] {
-  max-width: 200px;
-  margin: auto;
-  font-size: 0.85rem;
-  padding: 6px 14px;
-  border-radius: 20px !important;
-}
-
-section[data-testid="stSidebar"] .stButton {
-  margin-bottom: 0.4rem !important;
-}
-
-
-section[data-testid="stSidebar"] {
-    min-width: 320px !important;
-    max-width: 360px !important;
-}
-
 
 button:hover, .stButton>button:hover {
     opacity: 0.9;
+    transform: scale(1.02);
 }
 
-/* Sidebar header styling */
-    .sidebar-header {
-        background: linear-gradient(to right, #3b82f6, #8b5cf6);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        font-size: 1.5rem;
-        font-weight: 700;
-        margin-bottom: 0.5rem;
-        text-shadow: 0 0 8px rgba(59, 130, 246, 0.4);
- }
-
-.sidebar-subheader {
-        color: linear-gradient(to right, #3b82f6, #8b5cf6);
-        font-size: 0.85rem;
-        margin-bottom: 1rem;
-        font-weight: 500;
-}
-    
-    /* Dark mode adjustment */
-    @media (prefers-color-scheme: dark) {
-        .sidebar-subheader {
-            color: #94a3b8;
-        }
-    }
-
-
-.upload-container .stButton>button {
-    background: linear-gradient(90deg, #7f5af0, #3c8ce7);
-    color: white;
-    border-radius: 10px;
-    padding: 0.4rem 1rem;
+/* 2. Sidebar section styling */
+.sidebar-section-title {
+    text-align: center;
+    background: linear-gradient(to right, #7f5af0, #3c8ce7);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
     font-weight: 600;
+    margin-bottom: 0.5rem;
 }
 
-section[data-testid="stSidebar"] > div:first-child {
-    min-width: 300px;
-    max-width: 340px;
+.sidebar-section {
+    border-radius: 15px !important;
+    padding: 1rem !important;
+    margin-bottom: 1rem !important;
+    background: rgba(30, 30, 30, 0.7) !important;
 }
 
-
-section[data-testid="stSidebar"]::after {
-    content: "";
-    position: absolute;
-    top: 0;
-    right: 0;
-    width: 3px;
-    height: 100%;
-    background: linear-gradient(to bottom, #7b1fa2, #2196f3); /* Gradient purple to blue */
-    box-shadow: 0 0 8px rgba(123, 31, 162, 0.7), 0 0 12px rgba(33, 150, 243, 0.7);
-    z-index: 5;
-}
-section[data-testid="stSidebar"] {
-    position: relative;
-}
-            
-section[data-testid="stSidebar"] > div {
-  gap: 0.5rem !important;
-  margin-bottom: 0.25rem !important;
-}
- 
-section[data-testid="stSidebar"] {
-    background-color: #000000 !important;  /* Pure black */
-    color: white;
-    padding: 1.5rem 1rem;
-    position: relative;
-    box-shadow: inset -3px 0 6px rgba(255, 255, 255, 0.05);
+.sidebar-divider {
+    height: 2px;
+    background: linear-gradient(to right, #7b1fa2, #2196f3);
+    margin: 1rem 0;
+    border: none;
 }
 
-
-section[data-testid="stSidebar"] * {
-    color: white !important;
-}
-
-
-.download-label::before {
-    content: "\25BC "; /* Down arrow icon */
-    margin-right: 6px;
-}
-.download-label {
-    font-weight: bold;
-    margin-bottom: 6px;
-    color: #444;
-}
-
- /* Reduce gap between User Guide and Reset buttons */
-    div.stButton:has(button[kind="secondary"]) {
-        margin-top: 0.05rem !important;
-    }
-.header {
-    font-size: 2.5rem;
+.sidebar-header {
+    font-size: 1.8rem;
     font-weight: 700;
     background: linear-gradient(to right, #7f5af0, #3c8ce7);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
-    text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.2);
-    margin-bottom: 1rem;
     text-align: center;
+    margin-bottom: 0.5rem;
+    text-shadow: 0 0 8px rgba(123, 31, 162, 0.4);
+    animation: header-glow 2s infinite alternate;
+}
+    
+[data-testid="stSidebar"] {
+    position: relative;
 }
 
+/* Create the glowing gradient border */
+[data-testid="stSidebar"]::after {
+    content: "";
+    position: absolute;
+    right: 0;
+    top: 0;
+    height: 100%;
+    width: 3px;
+    background: linear-gradient(to bottom, 
+        #7b1fa2, 
+        #9c27b0, 
+        #2196f3);
+    box-shadow: 
+        0 0 5px #7b1fa2,
+        0 0 10px #2196f3;
+    animation: border-glow 2s ease-in-out infinite alternate;
+}
 
-.upload-section {
-  background: linear-gradient(to right, #7b1fa2, #2196f3);
-  color: white;
-  padding: 12px;
-  border-radius: 20px;
-  margin-top: 1rem;
-  text-align: center;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 1rem;
-  flex-wrap: wrap;
+@keyframes border-glow {
+    from { opacity: 0.8; }
+    to { opacity: 1; }
 }
-.upload-section span {
-  font-weight: 600;
-  font-size: 1rem;
+
+/* Ensure main content doesn't overlap */
+.main .block-container {
+    padding-left: 15px;
 }
-.upload-section .browse-button button {
-  border-radius: 25px !important;
-  padding: 6px 16px !important;
-  font-size: 0.85rem !important;
-  background: linear-gradient(to right, #7b1fa2, #2196f3);
-  color: white;
-  border: none;
+
+.sidebar-subheader {
+    font-size: 0.9rem;
+    color: #aaa;
+    text-align: center;
+    margin-bottom: 1.5rem;
 }
-  
+
+[data-testid="stSidebar"] {
+    background-color: #000000 !important;
+    width: 350px !important;
+}
+    
+.info-card {
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+    background: rgba(30, 30, 30, 0.5);
+    border-left: 4px solid;
+    border-image: linear-gradient(to bottom, #7b1fa2, #2196f3) 1;
+    animation: card-glow 3s infinite;
+    border-radius: 15px !important;
+    overflow: hidden !important;
+}
+
+@keyframes card-glow {
+    0% { box-shadow: 0 0 5px rgba(123, 31, 162, 0.3); }
+    50% { box-shadow: 0 0 15px rgba(33, 150, 243, 0.5); }
+    100% { box-shadow: 0 0 5px rgba(123, 31, 162, 0.3); }
+}
+
+.info-card h3 {
+    margin-top: 0;
+    background: linear-gradient(to right, #7f5af0, #3c8ce7);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+/* 3. File uploader styling */
+div[data-testid="stFileUploader"] {
+    border: 2px solid;
+    border-image: linear-gradient(to right, #7b1fa2, #2196f3);
+    border-image-slice: 1;
+    border-radius: 10px;
+    padding: 10px;
+    border-radius: 15px !important;
+    overflow: hidden !important;
+    padding: 10px !important;
+    background: rgba(30, 30, 30, 0.7) !important;
+
+}
+
+div[data-testid="stFileUploader"] button {
+    margin: 0 auto !important;
+    display: block !important;
+    border-radius: 20px !important;
+}
+
+/* Style the file list items */
+div[data-testid="stFileUploader"] [role='listitem'] {
+    border-radius: 8px !important;
+    margin: 0.25rem 0 !important;
+}
+            
+div[data-testid="stFileUploader"] button[title="Delete"] {
+    background: transparent !important;
+    color: #ff4b4b !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+}
 
 div[data-testid="stFileUploader"] > div:first-child {
     background: linear-gradient(to right, #7b1fa2, #2196f3) !important;
     border-radius: 20px !important;
     padding: 1rem 1.2rem !important;
     color: white !important;
-    font-weight: 600;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
-    margin-top: 0.5rem;
-    text-align: center;
-    margin-top: 0 !important;
-    padding-top: 0 !important;
-}
-
-div[data-testid="stFileUploader"] label::before {
-    content: "📂";
-    margin-right: 8px;
-    font-size: 1.2rem;
-}
-
-
-div[data-testid="stFileUploader"] button {
-    background: linear-gradient(to right, #7b1fa2, #2196f3) !important;
-    color: white !important;
-    border-radius: 25px !important;
-    padding: 6px 16px !important;
-    font-size: 0.85rem !important;
+    font-weight: 600 !important;
     border: none !important;
-    margin-top: 1rem;
-    transition: 0.3s ease;
+    text-align: center !important;
+    margin: 0 auto !important;
+    max-width: 90% !important;
+    border-radius: 15px !important;
 }
-div[data-testid="stFileUploader"] button:hover {
-    opacity: 0.9;
+/* 4. Toast notification styling */
+.toast {
+    font-size: 0.9rem;
+    padding: 0.75rem;
+    border-radius: 8px;
 }
 
-  .chat-container {
+/* Chat message styling */
+.user-message-container {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 1rem;
+}
+
+.bot-message-container {
+    display: flex;
+    justify-content: flex-start;
+    margin-bottom: 1rem;
+}
+
+.user-message {
+    max-width: 80%;
+    padding: 0.75rem 1rem;
+    border-radius: 12px;
+    background: linear-gradient(to left, rgba(60, 140, 231, 0.1), transparent);
+    border-left: 4px solid #3c8ce7;
+    border-right: 4px solid #3c8ce7;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.bot-message {
+    max-width: 80%;
+    padding: 0.75rem 1rem;
+    border-radius: 12px;
+    background: linear-gradient(to right, rgba(127, 90, 240, 0.1), transparent);
+    border-left: 4px solid #7f5af0;
+    border-right: 4px solid #7f5af0;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.message-meta {
+    font-size: 0.75rem;
+    color: #666;
+    margin-bottom: 0.25rem;
+}
+
+.message-content {
+    word-wrap: break-word;
+}
+
+/* 6. Download dropdown styling */
+.download-container {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.download-label {
+    font-size: 0.9rem;
+    margin-bottom: 0;
+}
+
+.download-select {
+    flex-grow: 1;
+}
+
+.download-button {
+    min-width: 40px;
+}
+
+/* 7. Developer info styling */
+.developer-info {
+    text-align: center;
+    margin-top: 1.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid #444;
+}
+
+.developer-line {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+}
+            
+.developer-name {
+    font-weight: 600;
+    background: linear-gradient(to right, #7f5af0, #3c8ce7);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.social-link {
+    color: #3b82f6;
+    text-decoration: none;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+}
+
+.social-link:hover {
+    text-decoration: underline;
+}
+
+.social-links a {
+    background: linear-gradient(to right, #7f5af0, #3c8ce7);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.social-links a:hover {
+    text-shadow: 0 0 5px rgba(123, 31, 162, 0.3);
+}
+
+.back-button {
+    margin-top: 1rem;
+    background: linear-gradient(to right, #7b1fa2, #2196f3);
+    color: white;
+    border: none;
+    border-radius: 20px;
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.back-button:hover {
+    opacity: 0.9;
+    transform: scale(1.02);
+}
+
+/* Add this to your CSS section */
+.back-button-container {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    margin-top: 1rem;
+}
+
+
+
+
+/* 1. Header with gradient and glow */
+.header {
+    font-size: 2.5rem;
+    font-weight: 600;
+    background: linear-gradient(to right, #7f5af0, #3c8ce7);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: 0 0 8px rgba(123, 31, 162, 0.4);
+    margin-bottom: 1rem;
+    text-align: center;
+    position: relative;
+    animation: header-glow 2s infinite alternate;
+}
+
+@keyframes header-glow {
+    0% { text-shadow: 0 0 5px rgba(123, 31, 162, 0.4); }
+    100% { text-shadow: 0 0 15px rgba(33, 150, 243, 0.6); }
+}
+
+/* General styling for cards and containers */
+.card, .chat-container, .guide-container, .download-container, .upload-area {
     border-radius: 12px;
     padding: 1rem;
     margin-bottom: 1rem;
-    border: 2px solid transparent;
-    background-clip: padding-box;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
-.user-message {
-    border: 2px solid #64b5f6; /* Light blue */
-    background-color: rgba(100, 181, 246, 0.1);
-    padding: 1rem;
-    border-radius: 10px;
-}
-.bot-message {
-    border: 2px solid #9575cd; /* Light purple */
-    background-color: rgba(149, 117, 205, 0.1);
-    padding: 1rem;
-    border-radius: 10px;
+
+/* Gradient border for upload section */
+.upload-section {
+    border-radius: 15px !important;
+    padding: 1.5rem !important;
+    margin-bottom: 1.5rem !important;
+    background: rgba(30, 30, 30, 0.7) !important;
+    border: 1px solid rgba(123, 31, 162, 0.3) !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25) !important;
 }
 
-.upload-container .stButton:last-child {
-    margin-left: auto;
+.upload-section .stFileUploader > div:first-child {
+    display: flex !important;
+    justify-content: center !important;
 }
 
-@media (prefers-color-scheme: dark) {
-    .chat-container, .guide-container, .upload-area {
-        background-color: rgba(30, 30, 30, 0.95);
+/* Style the file uploader dropzone */
+.upload-section .stFileUploader > div:last-child {
+    text-align: center !important;
+    margin-top: 1rem !important;
+}
+        
+.upload-section .stFileUploader button {
+    margin: 0 auto !important;
+    display: block !important;
+    border-radius: 20px !important;
+    background: linear-gradient(to right, #7b1fa2, #2196f3) !important;
+    color: white !important;
+}
+
+/* File list items */
+.upload-section .stFileUploader [role='listitem'] {
+    background: rgba(40, 40, 40, 0.7) !important;
+    border-radius: 8px !important;
+    padding: 0.5rem !important;
+    margin: 0.25rem 0 !important;
+    border: 1px solid rgba(123, 31, 162, 0.2) !important;
+}
+
+         
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .header {
+        font-size: 2rem;
     }
 }
-            
 </style>
 """, unsafe_allow_html=True)
 
@@ -488,7 +586,6 @@ def create_pdf(text):
     pdf = FPDF()
     pdf.add_page()
     pdf.set_font("Arial", size=12)
-    # Handle UTF-8 characters properly
     text = text.encode('latin1', 'replace').decode('latin1')
     pdf.multi_cell(0, 10, text)
     return pdf.output(dest='S').encode('latin1')
@@ -510,81 +607,100 @@ def export_content(content, format='txt', filename="export"):
         return None, None, None
 
 def reset_all_data():
-    # Clear FAISS index
     try:
         shutil.rmtree("faiss_index", ignore_errors=True)
-        st.success("✅ FAISS index cleared.")
+        st.toast("✅ FAISS index cleared.", icon="✅")
     except Exception as e:
-        st.error(f"Error clearing FAISS index: {str(e)}")
+        st.toast(f"Error clearing FAISS index: {str(e)}", icon="❌")
     
-    # Clear session state
     for key in list(st.session_state.keys()):
         del st.session_state[key]
     
-    st.success("Chat history and document data cleared. Please upload new documents to continue.")
+    st.toast("Chat history and document data cleared. Please upload new documents to continue.", icon="ℹ️")
     st.rerun()
 
-def show_guide():
+def clear_chat_history():
+    st.session_state.chat_history = []
+    st.toast("Chat history cleared. The document analysis remains available for new questions.", icon="ℹ️")
+    st.rerun()
+
+def show_project_info():
     st.markdown("""
-    ## 📚 DocuMind AI Guide
+    <div class="info-card">
+        <h3>What is DocuMind?</h3>
+        <p>DocuMind is an advanced AI-powered document analysis tool that helps you extract insights from various file formats including PDFs, Word documents, text files, and images. It combines OCR technology with large language models to provide intelligent document understanding, summarization, and question-answering capabilities.</p>
+        <p>Key features include:</p>
+        <ul>
+            <li>Multi-format document processing</li>
+            <li>Context-aware question answering</li>
+            <li>Automatic PII detection and redaction</li>
+            <li>Document summarization</li>
+            <li>Conversational interface</li>
+        </ul>
+    </div>
     
-    ### ✨ Core Features
+    <div class="info-card">
+        <h3>How It Works</h3>
+        <p>DocuMind follows a sophisticated pipeline to analyze your documents:</p>
+        <ol>
+            <li><strong>Document Ingestion</strong>: Upload your files in supported formats</li>
+            <li><strong>Text Extraction</strong>: Uses PyMuPDF for PDFs, pytesseract for images, and python-docx for Word documents</li>
+            <li><strong>Chunking</strong>: Splits content into manageable sections using RecursiveCharacterTextSplitter</li>
+            <li><strong>Vector Embedding</strong>: Creates semantic representations using Google's Gemini embeddings</li>
+            <li><strong>Query Processing</strong>: Uses Gemini-Pro model to understand and respond to your questions</li>
+            <li><strong>Response Generation</strong>: Provides accurate, context-aware answers with source references</li>
+        </ol>
+    </div>
     
-    **Document Analysis**
-    - Extract key information from PDFs, DOCX, TXT, and images
-    - Get precise answers to your document questions
-    - Automatically detect page references when requested
+    <div class="info-card">
+        <h3>Technology Stack</h3>
+        <p>DocuMind is built with cutting-edge technologies:</p>
+        <ul>
+            <li><strong>Streamlit</strong>: For the interactive web interface</li>
+            <li><strong>Google Gemini</strong>: For embeddings and question answering (models/embedding-001 and gemini-pro)</li>
+            <li><strong>LangChain</strong>: For document processing and retrieval pipelines</li>
+            <li><strong>FAISS</strong>: For efficient vector similarity search</li>
+            <li><strong>PyMuPDF</strong>: For PDF text extraction and redaction</li>
+            <li><strong>pytesseract</strong>: For OCR from images</li>
+            <li><strong>python-docx</strong>: For Word document processing</li>
+        </ul>
+        <p>Learn more about these technologies:</p>
+        <ul>
+            <li><a href="https://streamlit.io/" target="_blank">Streamlit</a></li>
+            <li><a href="https://ai.google.dev/" target="_blank">Google Gemini</a></li>
+            <li><a href="https://python.langchain.com/" target="_blank">LangChain</a></li>
+        </ul>
+    </div>
     
-    **Smart Summarization**
-    - Generate summaries of any length (50-1000 words)
-    - Focus on specific sections when needed
-    - Maintain all critical information
-    
-    **PII Detection & Redaction**
-    - Identify sensitive information:
-      - Email addresses
-      - Phone numbers
-      - Credit card information
-    - One-click redaction and export
-    
-    ### 🚀 How To Use
-    
-    1. **Upload Documents**
-       - PDF, DOCX, TXT, JPG, PNG files supported
-       - Multiple files can be processed together
-    
-    2. **Ask Questions**
-       - "What's the main conclusion?"
-       - "Explain the methodology on page 5"
-       - "List all key findings"
-    
-    3. **Generate Summaries**
-       - "200-word summary of the document"
-       - "Brief overview of the introduction"
-       - "50-word summary of the results section"
-    
-    4. **Handle Sensitive Data**
-       - "Find all email addresses"
-       - "Redact phone numbers and export"
-       - "Show detected PII"
-    """)
-    
-    if st.button("⬅️ Back to Chat", key="back_from_guide"):
-        st.session_state.show_guide = False
+   <div class="developer-info">
+        <div class="developer-line">
+            <span class="developer-name">Developed by Prena Patil</span>
+            <a href="https://github.com/prenapatil" target="_blank" class="social-link"> GitHub</a>
+            <a href="https://linkedin.com/in/prenapatil" target="_blank" class="social-link">LinkedIn</a>
+        </div>
+    </div>
+    <div class="back-button-container">
+    """, unsafe_allow_html=True)
+
+    if st.button("⬅️ Back to Chat", key="back_to_chat"):
+        st.session_state.show_project_info = False
         st.rerun()
+    st.markdown("</div></div>", unsafe_allow_html=True)
+    
 
 def main():
     st.set_page_config("✨ DocuMind AI", page_icon="📄", layout="wide")
     st.markdown('<div class="header">✨DocuMind Ai — Chat with Documents</div>', unsafe_allow_html=True)
 
-    if not st.session_state.get('processed_text') and not st.session_state.get('show_guide'):
+    if not st.session_state.get('processed_text') and not st.session_state.get('show_guide') and not st.session_state.get('show_project_info'):
         st.markdown("<h1 style='text-align: center; margin-top: 2rem;'>Welcome to DocuMind AI</h1>", unsafe_allow_html=True)
         st.markdown("<p style='text-align: center;'>Upload and process your documents to begin</p>", unsafe_allow_html=True)
 
     # Sidebar
     with st.sidebar:
-        st.markdown('<div class="sidebar-header">Documind AI</div>', unsafe_allow_html=True)
+        st.markdown('<div class="sidebar-header">DocuMind AI</div>', unsafe_allow_html=True)
         st.markdown('<div class="sidebar-subheader">Upload documents and images</div>', unsafe_allow_html=True)
+            
         uploaded_files = st.file_uploader(
             "Upload Documents",
             type=['pdf', 'docx', 'txt', 'png', 'jpg', 'jpeg'],
@@ -600,95 +716,113 @@ def main():
                     if raw_text.strip():
                         text_chunks = get_text_chunks(raw_text)
                         get_vector_store(text_chunks)
-                        st.success("Processing complete!")
+                        st.toast("Processing complete!", icon="✅")
                         st.session_state.chat_history.append({
                             "role": "assistant",
                             "content": "Hello! I've processed your documents. How can I help you today?"
                         })
                         st.rerun()
                     else:
-                        st.error("No text extracted - check file formats")
+                        st.toast("No text extracted - check file formats", icon="⚠️")
                 else:
-                    st.warning("Please upload files first")
+                    st.toast("Please upload files first", icon="⚠️")
         
-        st.divider()
+        # Divider
+        st.markdown('<div class="sidebar-divider"></div>', unsafe_allow_html=True)
+        
+        # Chat Management Section
+        st.markdown('<div class="sidebar-section-title">Chat Management</div>', unsafe_allow_html=True)
         
         # Download options
-        if st.session_state.processed_text:
-            st.subheader("Export Options")
-            col1, col2 = st.columns([3, 1])
-            with col1:
-                st.session_state.download_format = st.selectbox(
-                    "Format",
-                    ["TXT", "PDF", "DOCX"],
-                    label_visibility="collapsed"
+        st.markdown('<div class="download-label">Export as:</div>', unsafe_allow_html=True)
+        col1, col2 = st.columns([4, 1])
+        with col1:
+            st.session_state.download_format = st.selectbox(
+                "Format",
+                ["TXT", "PDF", "DOCX"],
+                label_visibility="collapsed"
+            )
+        with col2:
+            export_filename = "document_analysis"
+            content = "\n".join([f"{msg['role']}: {msg['content']}" for msg in st.session_state.chat_history]) if st.session_state.chat_history else "No chat history yet"
+            
+            file_data, mime_type, file_name = export_content(
+                content,
+                st.session_state.download_format.lower(),
+                export_filename
+            )
+            
+            if file_data:
+                st.download_button(
+                    label="⬇️",
+                    data=file_data,
+                    file_name=file_name,
+                    mime=mime_type,
+                    use_container_width=True,
+                    disabled=not st.session_state.chat_history
                 )
-            with col2:
-                export_filename = "document_analysis"
-                content = "\n".join([f"{msg['role']}: {msg['content']}" for msg in st.session_state.chat_history])
-                
-                file_data, mime_type, file_name = export_content(
-                    content,
-                    st.session_state.download_format.lower(),
-                    export_filename
-                )
-                
-                if file_data:
-                    st.download_button(
-                        label="⬇️",
-                        data=file_data,
-                        file_name=file_name,
-                        mime=mime_type,
-                        use_container_width=True
-                    )
         
-        st.divider()
+        if st.button("Clear Chat History", use_container_width=True, type="secondary"):
+            clear_chat_history()
         
-        if st.button("📘 User Guide", use_container_width=True):
-            st.session_state.show_guide = True
-            st.rerun()
-        
-        st.divider()
-        
-        if st.button("🔄 Reset All Data", 
-                   use_container_width=True, 
-                   type="secondary",
-                   help="Clear all chat history and document data"):
+        if st.button("🔄 Reset All Data", use_container_width=True, type="secondary"):
             reset_all_data()
+        
+        # Divider
+        st.markdown('<div class="sidebar-divider"></div>', unsafe_allow_html=True)
+        
+        # Project Info Section
+        st.markdown('<div class="sidebar-section-title">Project Info</div>', unsafe_allow_html=True)
+        
+        if st.button("About Project", use_container_width=True):
+            st.session_state.show_project_info = True
+            st.rerun()
     
     # Main content
-    if st.session_state.show_guide:
-        show_guide()
+    if st.session_state.show_project_info:
+        show_project_info()
     else:
         # Chat interface
+       # Add this import at the top of your file with other imports
+
+
+# Update your message display code to:
         for message in st.session_state.chat_history:
             if message["role"] == "user":
                 st.markdown(f"""
-                <div class="chat-container user-message">
-                    <div>
-                        <strong>You:</strong> {message["content"]}
+                <div class="user-message-container">
+                    <div class="user-message">
+                        <div class="message-meta">
+                            {datetime.now().strftime('%Y-%m-%d %H:%M:%S')} - You
+                        </div>
+                        <div class="message-content">
+                            {message["content"]}
+                        </div>
                     </div>
                 </div>
                 """, unsafe_allow_html=True)
             else:
                 st.markdown(f"""
-                <div class="chat-container bot-message">
-                    <div>
-                        <strong>DocuMind:</strong> {message["content"]}
+                <div class="bot-message-container">
+                    <div class="bot-message">
+                        <div class="message-meta">
+                            {datetime.now().strftime('%Y-%m-%d %H:%M:%S')} - DocuMind
+                        </div>
+                        <div class="message-content">
+                            {message["content"]}
+                        </div>
                     </div>
                 </div>
                 """, unsafe_allow_html=True)
-        
+                
         # User input
         user_question = st.chat_input("Ask about your documents...")
         if user_question and st.session_state.vector_store:
             st.session_state.chat_history.append({"role": "user", "content": user_question})
             with st.spinner("Analyzing..."):
                 try:
-                    # Handle PII requests
                     if "pii" in user_question.lower() or "hide" in user_question.lower() or "redact" in user_question.lower():
                         if st.session_state.original_files:
-                            # Process only the first PDF for redaction (can be extended for multiple files)
                             pdf_file = next((f for f in st.session_state.original_files if f.name.lower().endswith('.pdf')), None)
                             if pdf_file:
                                 redacted_doc = redact_pdf_content(pdf_file)
@@ -703,8 +837,6 @@ def main():
                                 answer = "No PDF file found to redact."
                         else:
                             answer = "No original files available for redaction. Please upload documents again."
-                    
-                    # Handle general questions
                     else:
                         chain = get_conversational_chain()
                         docs = st.session_state.vector_store.similarity_search(user_question)
@@ -718,15 +850,16 @@ def main():
                     st.rerun()
                 except Exception as e:
                     st.error(f"Analysis error: {str(e)}")
-    
-    # JavaScript for functionality
-    st.markdown("""
-    <script>
-    function backToChat() {
-        window.parent.postMessage({type: 'streamlit:setComponentValue', value: 'back_to_chat'}, '*');
-    }
-    </script>
-    """, unsafe_allow_html=True)
+
+        # Add this at the bottom of your main() function
+                st.markdown("""
+                <script>
+                // Handle back button click
+                function handleBackToChat() {
+                    window.parent.postMessage({type: 'streamlit:setComponentValue', value: 'back_to_chat'}, '*');
+                }
+                </script>
+                """, unsafe_allow_html=True)
 
 if __name__ == "__main__":
     main()
