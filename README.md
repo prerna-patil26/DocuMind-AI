@@ -33,7 +33,7 @@
 
 ---
 
-##📂 Project Structure
+## 📂 Project Structure
 ```bash
 DocuMind-AI/
 ├── app.py                # Main application
