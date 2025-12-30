@@ -36,6 +36,13 @@ pytesseract.pytesseract.tesseract_cmd = os.path.join(current_dir, "tesseract", "
 # Load environment variables
 load_dotenv()
 
+# Retrieve Gemini key (Streamlit secrets preferred in cloud)
+def get_gemini_api_key():
+    try:
+        return st.secrets.get("GEMINI_API_KEY") or os.getenv("GEMINI_API_KEY")
+    except Exception:
+        return os.getenv("GEMINI_API_KEY")
+
 # Initialize session state
 if 'chat_history' not in st.session_state:
     st.session_state.chat_history = []
@@ -512,15 +519,23 @@ def get_text_chunks(text):
     return text_splitter.split_text(text)
 
 def get_vector_store(text_chunks):
-    embeddings = GoogleGenerativeAIEmbeddings(
-        model="models/gemini-embedding-001",
-        google_api_key=os.getenv("GEMINI_API_KEY")
-    )
-    vector_store = FAISS.from_texts(text_chunks, embedding=embeddings)
-    vector_store.save_local("faiss_index")
-    st.session_state.vector_store = vector_store
-    st.session_state.processed_text = "\n".join(text_chunks)
-    return vector_store
+    api_key = get_gemini_api_key()
+    if not api_key:
+        st.error("GEMINI_API_KEY is missing. Add it to Streamlit secrets (cloud) or .env (local) and redeploy.")
+        return None
+    try:
+        embeddings = GoogleGenerativeAIEmbeddings(
+            model="models/gemini-embedding-001",
+            google_api_key=api_key
+        )
+        vector_store = FAISS.from_texts(text_chunks, embedding=embeddings)
+        vector_store.save_local("faiss_index")
+        st.session_state.vector_store = vector_store
+        st.session_state.processed_text = "\n".join(text_chunks)
+        return vector_store
+    except Exception as e:
+        st.error(f"Embedding error: {e}")
+        return None
 
 def get_conversational_chain():
     prompt_template = """
@@ -548,10 +563,13 @@ def get_conversational_chain():
     • Key finding 1 (details)
     • Key finding 2 (details)"
     """
+    api_key = get_gemini_api_key()
+    if not api_key:
+        st.error("GEMINI_API_KEY is missing. Add it to Streamlit secrets (cloud) or .env (local) and redeploy.")
     model = ChatGoogleGenerativeAI(
         model="gemini-2.5-flash",
         temperature=0.2,
-        google_api_key=os.getenv("GEMINI_API_KEY")
+        google_api_key=api_key
     )
     prompt = PromptTemplate(template=prompt_template, input_variables=["context", "question"])
     return load_qa_chain(model, chain_type="stuff", prompt=prompt)
