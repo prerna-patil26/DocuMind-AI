@@ -26,6 +26,9 @@ import shutil
 import glob
 from streamlit.components.v1 import html
 
+# Must be the first Streamlit call
+st.set_page_config("✨ DocuMind AI", page_icon="📄", layout="wide")
+
 # Configure Tesseract path
 current_dir = os.path.dirname(os.path.abspath(__file__))
 pytesseract.pytesseract.tesseract_cmd = os.path.join(current_dir, "tesseract", "tesseract.exe")
@@ -692,7 +695,6 @@ def show_project_info():
     
 
 def main():
-    st.set_page_config("✨ DocuMind AI", page_icon="📄", layout="wide")
     st.markdown('<div class="header">✨DocuMind Ai — Chat with Documents</div>', unsafe_allow_html=True)
 
     if not st.session_state.get('processed_text') and not st.session_state.get('show_guide') and not st.session_state.get('show_project_info'):
