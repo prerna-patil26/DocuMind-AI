@@ -4,10 +4,10 @@ pytesseract==0.3.10
 Pillow==10.2.0
 google-generativeai==0.3.2
 langchain==0.1.16
-langchain-google-genai==0.0.12
+langchain-google-genai==0.0.11
 langchain-community==0.0.38
 python-dotenv==1.0.1
 fpdf==1.7.2
 python-docx==0.8.11
 PyMuPDF==1.23.26
-faiss-cpu==1.7.4
+faiss-cpu==1.8.0
