@@ -513,7 +513,7 @@ def get_text_chunks(text):
 
 def get_vector_store(text_chunks):
     embeddings = GoogleGenerativeAIEmbeddings(
-        model="models/embedding-001",
+        model="models/gemini-embedding-001",
         google_api_key=os.getenv("GEMINI_API_KEY")
     )
     vector_store = FAISS.from_texts(text_chunks, embedding=embeddings)
